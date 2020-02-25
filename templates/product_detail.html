@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+
+{% block content  %}
+<!--Main layout-->
+<main class="mt-5 pt-4">
+  <div class="container dark-grey-text mt-5">
+
+    <!--Grid row-->
+    <div class="row wow fadeIn">
+
+      <!--Grid column-->
+      <div class="col-md-6 mb-4">
+
+        <img src="{{ item.image.url }}" class="img-fluid" alt="">
+
+      </div>
+      <!--Grid column-->
+
+      <!--Grid column-->
+      <div class="col-md-6 mb-4">
+
+        <!--Content-->
+        <div class="p-4">
+
+          <div class="mb-3">
+            <a href="">
+              <span class="badge purple mr-1">{{ item.category }}</span>
+            </a>
+            <a href="">
+              <span class="badge blue mr-1">New</span>
+            </a>
+            <a href="">
+              <span class="badge red mr-1">Bestseller</span>
+            </a>
+          </div>
+
+          <p class="lead">
+            {% if item.discount_price %}
+            <span class="mr-1">
+              <del>${{item.discount_price}}</del>
+            </span>
+            {% endif %}
+            <span>${{item.price}}</span>
+          </p>
+
+          <p class="lead font-weight-bold">Description</p>
+
+          <p>{{ item.description }}</p>
+
+          {% comment %}
+          <form class="d-flex justify-content-left" method="POST" action="{% url 'core:add_to_cart' %}">
+            <input type="number" name="number" value="1" aria-label="Search" class="form-control" style="width: 100px">
+            <input type="submit" value="Add to cart" class="btn btn-primary">
+          </form>
+          {% endcomment %}
+          <a href="{{ item.get_add_to_cart_url }}" class="btn btn-primary btn-sm py-2">Add to cart</a>
+        </div>
+        <!--Content-->
+
+      </div>
+      <!--Grid column-->
+
+    </div>
+    <!--Grid row-->
+
+    <hr>
+
+    <!--Grid row-->
+    {% if item.associated_items %}
+
+    <div class="row d-flex justify-content-center wow fadeIn">
+
+      <!--Grid column-->
+      <div class="col-md-6 text-center">
+
+        <h4 class="my-4 h4">Similar products you may like</h4>
+      </div>
+      <!--Grid column-->
+
+    </div>
+    <!--Grid row-->
+    <!--Grid row-->
+    <div style="display:grid; grid-template-columns:repeat(4, 1fr); grid-gap: 0.5rem;">
+      {% for product in item.associated_items.all %}
+      <a href="{{ product.get_absolute_url }}">
+        <img src="{{ product.image.url }}" width="100%" alt="">
+        <span class="color-primary">{{ product.title }}</span>
+      </a>
+      {% endfor %}
+    </div>
+    <!--Grid row-->
+    {% endif %}
+
+  </div>
+</main>
+<!--Main layout-->
+{% endblock content  %}
