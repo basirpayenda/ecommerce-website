@@ -45,6 +45,11 @@ class Item(models.Model):
             'slug': self.slug
         })
 
+    def get_remove_from_cart_url(self):
+        return reverse("core:remove_from_cart", kwargs={
+            'slug': self.slug
+        })
+
 
 class OrderedItems(models.Model):
     item = models.ForeignKey(Item, on_delete=models.CASCADE)
@@ -54,7 +59,7 @@ class OrderedItems(models.Model):
     ordered = models.BooleanField(default=False)
 
     def __str__(self):
-        return self.item.title
+        return f"{self.quantity} {self.item.title}s from {self.user}"
 
 
 class Order(models.Model):

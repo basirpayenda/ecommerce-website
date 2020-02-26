@@ -1,6 +1,7 @@
 {% url 'core:home' as home %}
 {% url 'core:checkout' as checkout %}
 {% url 'core:product_detail' as product_detail %}
+{% url 'account_signup' as signup %}
 
 <!-- Navbar -->
 <nav class="navbar fixed-top navbar-expand-lg navbar-light white scrolling-navbar">
@@ -32,6 +33,10 @@
                 </li>
                 <li class="nav-item {% if request.path == product_detail %} active {% endif %}">
                     <a class="nav-link waves-effect" href="{{ product_detail }}" target="_blank">Product</a>
+                </li>
+                <li class="nav-item {% if request.path == signup %} active {% endif %}">
+                    <a class="nav-link waves-effect" href="{{ signup }}" target="_blank">Sign up |
+                        {{ user.username }}</a>
                 </li>
             </ul>
 

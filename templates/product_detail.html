@@ -34,6 +34,7 @@
             </a>
           </div>
 
+          <h3>{{item.title}}</h3>
           <p class="lead">
             {% if item.discount_price %}
             <span class="mr-1">
@@ -47,13 +48,20 @@
 
           <p>{{ item.description }}</p>
 
-          {% comment %}
-          <form class="d-flex justify-content-left" method="POST" action="{% url 'core:add_to_cart' %}">
+          <hr>
+          {% for ordereditem in item.ordereditems_set.all %}
+          {% if ordereditem.quantity > 0 and ordereditem.user.username == user.username %}
+          <a href="{{ item.get_remove_from_cart_url }}" class="btn btn-danger btn-sm py-2">Remove from
+            cart</a>
+          {% elif not ordereditem %}
+          <!-- else if there is no record of 'ordereditem' from current user show below -->
+          <form class="d-flex justify-content-left" method="POST" action="{{ item.get_add_to_cart_url }}">
+            {% csrf_token %}
             <input type="number" name="number" value="1" aria-label="Search" class="form-control" style="width: 100px">
             <input type="submit" value="Add to cart" class="btn btn-primary">
           </form>
-          {% endcomment %}
-          <a href="{{ item.get_add_to_cart_url }}" class="btn btn-primary btn-sm py-2">Add to cart</a>
+          {% endif %}
+          {% endfor %}
         </div>
         <!--Content-->
 
