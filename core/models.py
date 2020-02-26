@@ -52,7 +52,8 @@ class Item(models.Model):
 
 
 class OrderedItems(models.Model):
-    item = models.ForeignKey(Item, on_delete=models.CASCADE)
+    item = models.ForeignKey(
+        Item, on_delete=models.CASCADE, related_name='ordereditems')
     quantity = models.IntegerField(default=1)
     user = models.ForeignKey(settings.AUTH_USER_MODEL,
                              on_delete=models.CASCADE)

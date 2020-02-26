@@ -17,9 +17,15 @@ class ItemDetailView(DetailView):
     template_name = 'product_detail.html'
     context_object_name = 'item'
 
-    def get_object(self, *args, **kwargs):
+    def get_object(self):
         obj = get_object_or_404(Item, slug=self.kwargs.get('slug'))
         return obj
+
+    def get_context_data(self, **kwargs):  # finally, GODDDD thanks
+        item = self.get_object()
+        kwargs['ordereditems'] = OrderedItems.objects.filter(
+            item=item, user=self.request.user)
+        return super().get_context_data(**kwargs)
 
 
 def checkout(request):
@@ -42,7 +48,7 @@ def add_to_cart(request, slug):
             order_item.save()
             order.items.add(order_item)
             messages.info(request, "This item was added to your cart.")
-            return redirect('core:product_detail', slug=slug)
+            return redirect('core:home')
 
         ordered_date = timezone.now()
         order = Order.objects.create(
@@ -72,7 +78,7 @@ def remove_from_cart(request, slug):
             order.items.remove(order_item)
             order_item.delete()
             messages.info(request, "This item was removed from your cart.")
-            return redirect("core:home")
+            return redirect('core:product_detail', slug=slug)
         else:
             messages.info(request, "This item was not in your cart")
             return redirect("core:product_detail", slug=slug)

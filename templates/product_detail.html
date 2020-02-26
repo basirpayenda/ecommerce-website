@@ -49,18 +49,18 @@
           <p>{{ item.description }}</p>
 
           <hr>
-          {% for ordereditem in item.ordereditems_set.all %}
-          {% if ordereditem.quantity > 0 and ordereditem.user.username == user.username %}
-          <a href="{{ item.get_remove_from_cart_url }}" class="btn btn-danger btn-sm py-2">Remove from
-            cart</a>
-          {% elif not ordereditem %}
+          {% for ordereditem in ordereditems %}
+          <strong>You already have {{ordereditem.quantity}} {{ordereditem.item}} in cart, do you want to remvoe it?
+          </strong> <br> <br>
+          <a href="{{ item.get_remove_from_cart_url }}" class="btn btn-danger">Remove from cart </a>
+          {% empty %}
           <!-- else if there is no record of 'ordereditem' from current user show below -->
-          <form class="d-flex justify-content-left" method="POST" action="{{ item.get_add_to_cart_url }}">
+          <form class="d-flex justify-content-left align-items-center" method="POST"
+            action="{{ item.get_add_to_cart_url }}">
             {% csrf_token %}
             <input type="number" name="number" value="1" aria-label="Search" class="form-control" style="width: 100px">
             <input type="submit" value="Add to cart" class="btn btn-primary">
           </form>
-          {% endif %}
           {% endfor %}
         </div>
         <!--Content-->
