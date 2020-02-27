@@ -1,6 +1,6 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import Order, Item, OrderedItems
-from django.views.generic import ListView, DetailView
+from django.views.generic import ListView, DetailView, View
 from django.contrib import messages
 from django.utils import timezone
 from django.urls import reverse
@@ -11,6 +11,12 @@ class ItemListView(ListView):
     template_name = 'home.html'
     context_object_name = 'items'
     paginate_by = 9
+
+
+class OrderSummaryView(View):
+    def get(self, *args, **kwargs):
+        order = Order.objects.get(user=self.request.user, ordered=False)
+        return render(self.request, 'order-summary.html', {'order': order})
 
 
 class ItemDetailView(DetailView):
@@ -39,7 +45,7 @@ def add_to_cart(request, slug):
         order_item = OrderedItems.objects.create(
             item=item,
             user=request.user,
-            ordered=False
+            ordered=False,
         )
         order_qs = Order.objects.filter(user=request.user, ordered=False)
         if order_qs.exists():
@@ -48,12 +54,11 @@ def add_to_cart(request, slug):
             order_item.quantity = request.POST.get('number')
             order_item.save()
             order.items.add(order_item)
-            messages.info(request, "This item was added to your cart.")
+            messages.info(
+                request, "This item has been successfully added to your cart.")
             return redirect('core:home')
 
-        ordered_date = timezone.now()
-        order = Order.objects.create(
-            user=request.user, ordered_date=ordered_date)
+        order = Order.objects.create(user=request.user, ordered=False)
         order.items.add(order_item)
         order_item.quantity = request.POST.get('number')
         order_item.save()
@@ -79,10 +84,29 @@ def remove_from_cart(request, slug):
             order.items.remove(order_item)
             order_item.delete()
             messages.info(request, "This item was removed from your cart.")
-            return redirect('core:product_detail', slug=slug)
+            return redirect('core:order-summary')
         else:
             messages.info(request, "This item was not in your cart")
-            return redirect("core:product_detail", slug=slug)
-    else:
-        messages.info(request, "You do not have an active order")
-        return redirect("core:product_detail", slug=slug)
+            return redirect("core:order-summary")
+
+
+def increment_cart_item(request, slug):
+    """ increase quantity by one """
+    item = get_object_or_404(Item, slug=slug)
+    order_item = OrderedItems.objects.get(
+        item=item,
+        user=request.user,
+        ordered=False,
+    )
+    order_item.quantity += 1
+    order_item.save()
+    return redirect('core:order-summary')
+
+
+def decrement_item(request, slug):
+    item = get_object_or_404(Item, slug=slug)
+    ordered_item = OrderedItems.objects.get(
+        user=request.user, ordered=False, item=item)
+    ordered_item.quantity -= 1
+    ordered_item.save()
+    return redirect('core:order-summary')

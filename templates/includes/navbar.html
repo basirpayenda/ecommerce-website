@@ -1,7 +1,7 @@
 {% url 'core:home' as home %}
 {% url 'core:checkout' as checkout %}
 {% url 'account_signup' as signup %}
-
+{% url 'core:order-summary' as order_summary %}
 {% load count_cart_items %}
 
 <!-- Navbar -->
@@ -38,7 +38,8 @@
             <ul class="navbar-nav nav-flex-icons">
                 {% if user.is_authenticated %}
                 <li class="nav-item">
-                    <a class="nav-link waves-effect">
+                    <a class="nav-link waves-effect {% if request.path == order_summary %} active {% endif %}"
+                        href="{{ order_summary }}">
                         <span class="badge red z-depth-1 mr-1"> {{ request.user|count_cart_items }} </span>
                         <i class="fas fa-shopping-cart"></i>
                         <span class="clearfix d-none d-sm-inline-block"> Cart </span>

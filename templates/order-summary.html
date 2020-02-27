@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+
+{% block content  %}
+<!--Main layout-->
+<main class="mt-5 pt-4 container">
+    <div class="table-responsive">
+        <table class="table table-striped" style="font-size: 1.3rem !important;">
+            <thead class="black white-text">
+                <tr>
+                    <th scope="col">{{ forloop.counter }}</th>
+                    <th scope="col">Item Title</th>
+                    <th scope="col">Price</th>
+                    <th scope="col">Quantity</th>
+                    <th scope="col">Discount/ Item</th>
+                    <th scope="col">Total Price</th>
+                    <th scope="col">Trash</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ordered_item in order.items.all %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ ordered_item.item.title }}</td>
+                    <td>{{ ordered_item.item.price }}$</td>
+                    <td>
+                        <a href="{% url 'core:decrement_item' ordered_item.item.slug %}"><i
+                                class="fas fa-caret-left mr-1"></i></a>
+                        {{ ordered_item.quantity }}
+                        <a href="{% url 'core:increment_cart_item' ordered_item.item.slug %}"><i
+                                class="fas fa-caret-right ml-1"></i></a>
+                    </td>
+                    {% if ordered_item.item.discount_price %}
+                    <td>{{ ordered_item.item.discount_price }}$</td>
+                    {% else %}
+                    <td>0</td>
+                    {% endif %}
+                    {% if ordered_item.item.discount_price %}
+                    <td>{{ ordered_item.total_price_of_item_after_discount }}$ <span
+                            class="badge badge-danger badge-lg strike">saved
+                            {{ ordered_item.total_discount_of_item }}</span> </td>
+                    {% else %}
+                    <td>{{ ordered_item.total_price_of_item }}$ </td>
+                    {% endif %}
+                    <td><a href="{% url 'core:remove_from_cart' ordered_item.item.slug %}"><i class="fas fa-trash"
+                                style="color: red;"></i></a></td>
+                </tr>
+                {% endfor %}
+                <tr>
+                    <td colspan="5">Total amount:</td>
+                    <td>{{ order.total_price }}$</td>
+                    <td></td>
+                </tr>
+            </tbody>
+        </table>
+        <div class="d-flex justify-content-end align-items-center">
+            <a href="{% url 'core:home' %}" class="btn btn-light">Continue Shopping</a>
+            <a href="{% url 'core:checkout' %}" class="btn btn-dark">Checkout</a>
+        </div>
+    </div>
+</main>
+<!--Main layout-->
+<br><br>
+<br><br>
+<br><br>
+<br><br>
+<br><br>
+{% endblock content  %}

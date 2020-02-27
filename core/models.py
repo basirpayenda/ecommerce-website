@@ -62,13 +62,31 @@ class OrderedItems(models.Model):
     def __str__(self):
         return f"{self.quantity} {self.item.title}s from {self.user}"
 
+    def total_price_of_item(self):
+        return self.quantity * self.item.price
+
+    def total_discount_of_item(self):
+        return self.quantity * self.item.discount_price
+
+    def total_saved_after_discount(self):
+        return float(self.total_price_of_item()) - float(self.total_discount_of_item())
+
+    def total_price_of_item_after_discount(self):
+        return float(self.total_price_of_item()) - float(self.total_discount_of_item())
+
+    def final_price(self):
+        if self.item.discount_price:
+            return self.total_price_of_item_after_discount()
+        else:
+            return self.total_price_of_item()
+
 
 class Order(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL,
                              on_delete=models.CASCADE)
     items = models.ManyToManyField(OrderedItems)
     start_date = models.DateTimeField(auto_now_add=True)
-    ordered_date = models.DateTimeField()
+    ordered_date = models.DateTimeField(auto_now_add=True)
     ordered = models.BooleanField(default=False)
 
     def __str__(self):
@@ -78,3 +96,9 @@ class Order(models.Model):
         return reverse("core:product", kwargs={
             'slug': self.slug
         })
+
+    def total_price(self):
+        total = 0
+        for item in self.items.all():
+            total += item.final_price()
+        return float(total)
