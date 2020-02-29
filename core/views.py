@@ -1,11 +1,15 @@
+import stripe
 from django.shortcuts import render, get_object_or_404, redirect
-from .models import Order, Item, OrderedItems, BillingAddress
+from .models import Order, Item, OrderedItems, BillingAddress, Payment
 from django.views.generic import ListView, DetailView, View
 from django.contrib import messages
 from django.utils import timezone
 from django.urls import reverse
 from .forms import CheckoutForm
 from django.core.exceptions import ObjectDoesNotExist
+from django.conf import settings
+
+stripe.api_key = settings.STRIPE_TEST_SECRET_KEY  # new
 
 
 class ItemListView(ListView):
@@ -17,8 +21,12 @@ class ItemListView(ListView):
 
 class OrderSummaryView(View):
     def get(self, *args, **kwargs):
-        order = Order.objects.get(user=self.request.user, ordered=False)
-        return render(self.request, 'order-summary.html', {'order': order})
+        try:
+            order = Order.objects.get(user=self.request.user, ordered=False)
+            return render(self.request, 'order-summary.html', {'order': order})
+        except ObjectDoesNotExist:
+            messages.warning(self.request, "You do not have an active order")
+            return redirect("/")
 
 
 class CheckoutView(View):
@@ -50,11 +58,84 @@ class CheckoutView(View):
                 order.billing_address = billing_address
                 order.save()
                 # TODO: add redirect to selected payment option
+                if payment_method == 'stripe':
+                    return redirect('core:payment')
+                elif payment_method == 'paypal':
+                    return redirect('core:payment')
+                else:
+                    messages.warning(
+                        self.request, "Invalid payment option selected")
+                    return redirect('core:checkout')
+
                 messages.success(self.request, 'Checkout successfully done!')
                 return redirect('core:home')
         except ObjectDoesNotExist:
             messages.warning(self.request, 'Object doesn\'t exist')
             return redirect('core:order-summary')
+
+
+class PaymentView(View):
+    def get(self, *args, **kwargs):
+        return render(self.request, 'payment.html')
+
+    def post(self, *args, **kwargs):
+        order = Order.objects.get(user=self.request.user, ordered=False)
+        token = self.request.POST.get('stripeToken')
+        amount = int(order.total_price() * 100)
+
+        try:
+            charge = stripe.Charge.create(
+                amount=amount,
+                currency='usd',
+                source=token
+            )
+            order.ordered = True
+            payment = Payment()
+            payment.stripe_id = charge['id']
+            payment.user = self.request.user
+            payment.amount = amount
+            payment.save()
+            order.payment = payment
+            for item in order.items.all():
+                item.ordered = True
+                item.ordered = True
+                item.save()
+            order.save()
+            messages.success(self.request, 'Your order was successful!')
+            return redirect('/')
+        except stripe.error.CardError as e:
+            body = e.json_body
+            err = body.get('error', {})
+            messages.error(self.request, f"{err.get('message')}")
+            return redirect('/')
+
+        except stripe.error.RateLimitError as e:
+            # Too many requests made to the API too quickly
+            messages.error(self.request, "Rate limit error!")
+            return redirect('/')
+
+        except stripe.error.InvalidRequestError as e:
+            messages.error(self.request, "Invalid Request Error!")
+            return redirect('/')
+
+        except stripe.error.AuthenticationError as e:
+            messages.error(self.request, "Authentication Error")
+            return redirect('/')
+
+        except stripe.error.APIConnectionError as e:
+            messages.error(self.request, "Network Communication Error")
+            return redirect('/')
+
+        except stripe.error.StripeError as e:
+            # Display a very generic error to the user, and maybe send
+            # yourself an email
+            messages.error(
+                self.request, "We have been notified of this error, sorry for inconvenience. We'll fix it soon.")
+            return redirect('/')
+        except Exception as e:
+            messages.error(
+                self.request, "We have been notified of this exception, sorry for inconvenience. We'll fix it soon.")
+            return redirect('/')
 
 
 class ItemDetailView(DetailView):
@@ -69,7 +150,7 @@ class ItemDetailView(DetailView):
     def get_context_data(self, **kwargs):  # finally, GODDDD thanks
         item = self.get_object()
         kwargs['ordereditems'] = OrderedItems.objects.filter(
-            item=item, user=self.request.user)
+            item=item, user=self.request.user, ordered=False)
         return super().get_context_data(**kwargs)
 
 

@@ -50,7 +50,7 @@
 
           <hr>
           {% for ordereditem in ordereditems %}
-          <strong>You already added {{ordereditem.quantity}} {{ordereditem.item}} in cart, do you want to remvoe it?
+          <strong>You added {{ordereditem.quantity}} {{ordereditem.item}} in cart, do you want to remvoe it?
           </strong> <br> <br>
           <a href="{{ item.get_remove_from_cart_url }}" class="btn btn-danger">Remove from cart </a>
           {% empty %}

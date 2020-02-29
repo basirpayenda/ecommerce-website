@@ -44,6 +44,8 @@
                     <td><a href="{% url 'core:remove_from_cart' ordered_item.item.slug %}"><i class="fas fa-trash"
                                 style="color: red;"></i></a></td>
                 </tr>
+                {% empty %}
+                <h1>Your cart is empty!</h1>
                 {% endfor %}
                 <tr>
                     <td colspan="5">Total amount:</td>
