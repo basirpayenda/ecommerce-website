@@ -1,9 +1,11 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from .models import Order, Item, OrderedItems
+from .models import Order, Item, OrderedItems, BillingAddress
 from django.views.generic import ListView, DetailView, View
 from django.contrib import messages
 from django.utils import timezone
 from django.urls import reverse
+from .forms import CheckoutForm
+from django.core.exceptions import ObjectDoesNotExist
 
 
 class ItemListView(ListView):
@@ -17,6 +19,42 @@ class OrderSummaryView(View):
     def get(self, *args, **kwargs):
         order = Order.objects.get(user=self.request.user, ordered=False)
         return render(self.request, 'order-summary.html', {'order': order})
+
+
+class CheckoutView(View):
+    def get(self, *args, **kwargs):
+        form = CheckoutForm()
+        return render(self.request, 'checkout.html', {'form': form})
+
+    def post(self, *args, **kwargs):
+        form = CheckoutForm(self.request.POST)
+        try:
+            order = Order.objects.get(user=self.request.user, ordered=False)
+            if form.is_valid():
+                street_address = form.cleaned_data.get('street_address')
+                second_address = form.cleaned_data.get('second_address')
+                country = form.cleaned_data.get('country')
+                zip_code = form.cleaned_data.get('zip_code')
+                # TODO: add functionality to following:
+                # same_billing_address = form.cleaned_data.get(
+                #     'same_billing_address')
+                # save_info = form.cleaned_data.get('save_info')
+                payment_method = form.cleaned_data.get('payment_method')
+                billing_address = BillingAddress.objects.create(
+                    user=self.request.user,
+                    street_address=street_address,
+                    apartment_address=second_address,
+                    country=country,
+                    zip_code=zip_code
+                )
+                order.billing_address = billing_address
+                order.save()
+                # TODO: add redirect to selected payment option
+                messages.success(self.request, 'Checkout successfully done!')
+                return redirect('core:home')
+        except ObjectDoesNotExist:
+            messages.warning(self.request, 'Object doesn\'t exist')
+            return redirect('core:order-summary')
 
 
 class ItemDetailView(DetailView):
@@ -33,10 +71,6 @@ class ItemDetailView(DetailView):
         kwargs['ordereditems'] = OrderedItems.objects.filter(
             item=item, user=self.request.user)
         return super().get_context_data(**kwargs)
-
-
-def checkout(request):
-    return render(request, 'checkout.html')
 
 
 def add_to_cart(request, slug):
