@@ -8,7 +8,9 @@ from .views import (
     OrderSummaryView,
     increment_cart_item,
     decrement_item,
-    PaymentView
+    PaymentView,
+    AddCouponView,
+    RequestRefundView
 )
 
 app_name = 'core'
@@ -21,8 +23,10 @@ urlpatterns = [
          name='increment_cart_item'),
     path('decrement_item/<slug>/', decrement_item,
          name='decrement_item'),
+    path('add-coupon/', AddCouponView.as_view(), name='add_coupon'),
     path('add-to-cart/<slug>/', add_to_cart, name='add_to_cart'),
     path('payment/', PaymentView.as_view(), name='payment'),
+    path('request-refund/', RequestRefundView.as_view(), name='request_refund'),
     path('remove-from-cart/<slug>/', remove_from_cart, name='remove_from_cart'),
     path('', ItemListView.as_view(), name='home'),
 ]

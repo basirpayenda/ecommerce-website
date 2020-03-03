@@ -47,6 +47,13 @@
                 {% empty %}
                 <h1>Your cart is empty!</h1>
                 {% endfor %}
+                {% if order.coupon %}
+                <tr>
+                    <td colspan="5">Coupon amount:</td>
+                    <td>-{{ order.coupon.amount }}$</td>
+                    <td></td>
+                </tr>
+                {% endif %}
                 <tr>
                     <td colspan="5">Total amount:</td>
                     <td>{{ order.total_price }}$</td>

@@ -27,3 +27,18 @@ class CheckoutForm(forms.Form):
     # payment method
     payment_method = forms.ChoiceField(
         widget=forms.RadioSelect(), choices=PAYMENT_CHOICES)
+
+
+class CouponForm(forms.Form):
+    code = forms.CharField(widget=forms.TextInput(attrs={
+        'class': 'form-control',
+        'placeholder': 'Promo code',
+        'aria-label': 'Recipient\'s username',
+        'aria-describedby': 'basic-addon2'
+    }))
+
+
+class RefundForm(forms.Form):
+    ref_code = forms.CharField()
+    message = forms.CharField(widget=forms.Textarea)
+    email = forms.EmailField()
